@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanjob
+  namespace: kube-system
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kubectl
+            image: bitnami/kubectl
+            command:
+            - /bin/bash
+            - -c
+            - >
+              echo "hello" | kubectl get pods --all-namespaces | awk '{if ($4 ~/Completed/) print "kubectl delete -n "$1,"pod/"$2}' | sh;
+          serviceAccountName: cleanjobs
+          restartPolicy: OnFailure
+
